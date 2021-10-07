@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:order-management-sapi="http://www.mulesoft.org/schema/mule/order-management-sapi"
+	xmlns:moviesmanagement-sapi="http://www.mulesoft.org/schema/mule/moviesmanagement-sapi" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/moviesmanagement-sapi http://www.mulesoft.org/schema/mule/moviesmanagement-sapi/current/mule-moviesmanagement-sapi.xsd
+http://www.mulesoft.org/schema/mule/order-management-sapi http://www.mulesoft.org/schema/mule/order-management-sapi/current/mule-order-management-sapi.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="05a1cd0e-aed3-40dd-a6e2-be67b9986abd" file="config.yaml" />
+	<moviesmanagement-sapi:config name="Moviesmanagement_SAPI_Config" doc:name="Moviesmanagement-SAPI Config" doc:id="0e5cf15b-4eaf-4602-98b3-73575b629a5a" property_host="${MM.host}" property_port="${MM.port}" property_protocol="${MM.protocol}" property_basePath="${MM.basepath}" property_responseTimeout="1000000"/>
+	<order-management-sapi:config name="OrderManagement_SAPI_Config" doc:name="OrderManagement-SAPI Config" doc:id="606fc512-08c7-48d9-994c-02820b0e8667" property_host="${OM.host}" property_port="${OM.port}" property_protocol="${OM.protocol}" property_basePath="${OM.basepath}" property_responseTimeout="1000000"/>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="1cd5bd0e-5872-4abc-a506-8a81f6cbf4cd" >
+		<db:generic-connection url="${db.url}" driverClassName="${db.classname}" user="${db.user}" password="${db.password}" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="9a4811db-82c8-4713-b857-6a7a4afaeb6d" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="yatin.more@apisero.com" password="Monalisa@1997" timeoutUnit="NANOSECONDS">
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+</mule>

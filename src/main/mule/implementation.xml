@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:order-management-sapi="http://www.mulesoft.org/schema/mule/order-management-sapi" xmlns:moviesmanagement-sapi="http://www.mulesoft.org/schema/mule/moviesmanagement-sapi" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/moviesmanagement-sapi http://www.mulesoft.org/schema/mule/moviesmanagement-sapi/current/mule-moviesmanagement-sapi.xsd
+http://www.mulesoft.org/schema/mule/order-management-sapi http://www.mulesoft.org/schema/mule/order-management-sapi/current/mule-order-management-sapi.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="8f6c0788-ef42-4a8f-bcec-4bdff5658bda" >
+		<http:request-connection host="moviesmanagement-sapi1.us-e2.cloudhub.io" connectionIdleTimeout="3000000" />
+	</http:request-config>
+	<flow name="GETMovies" doc:id="41321571-e456-44d3-9ae8-636034a616d5" >
+		<moviesmanagement-sapi:get-m-ms doc:name="GET/ Movies" doc:id="4cc7ff89-521e-4d49-823c-a1998673eff0" config-ref="Moviesmanagement_SAPI_Config" location="#[vars.location]"/>
+		<ee:transform doc:name="Transform Message" doc:id="ac5807ec-2f5b-48f7-a33f-ab33c44037ae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="55262673-7d72-43cd-920d-a490b19bf1dd" >
+				<ee:transform doc:name="Transform Message" doc:id="6ac2ebeb-0769-4436-9ac9-8795f90166f1">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Error while getting movies"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="72ee9620-feab-427f-9afa-d22592686e75" message="#[payload]"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="BOOKTicket" doc:id="fdbc7d65-44bd-4a0f-861e-ad3fa65b1cef" >
+		<order-management-sapi:get-o-ms doc:name="Book/ Ticket" doc:id="a959c9ae-020e-4866-9895-97692bf27cd0" config-ref="OrderManagement_SAPI_Config" location="#[attributes.queryParams.location]" moviename="#[attributes.queryParams.moviename]"/>
+		<ee:transform doc:name="Transform Message" doc:id="22e40f54-d62a-41f2-9520-4b6cea0123f3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="3c106d0f-09a0-43c9-a5b5-da4386d7965c" >
+				<ee:transform doc:name="Transform Message" doc:id="bd06dea4-9086-4720-b884-a1b9c38ffc96" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Error while booking ticket"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="655218ac-957b-4509-b28f-d278a63484c1" message="#[payload]"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="moviesFlow" doc:id="d2dc7f8a-fb3b-413c-845c-1d5bfd125145">
+		<set-variable value="#[attributes.queryParams.location]" doc:name="Set Variable" doc:id="0c658f2c-ded0-4e5e-835e-73f142a3f7e0" variableName="location"/>
+		<flow-ref doc:name="Flow Reference" doc:id="30bbe535-0bde-4088-8cea-a4e2696e40b1" name="GETMovies" targetValue="#[message]"/>
+		<ee:transform doc:name="Transform Message" doc:id="b5396c97-35a3-4e6e-a3b8-b9e7b24500f0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a59115b2-7dc8-4c6d-813b-76b68f69be33" message="#[payload]"/>
+	</flow>
+	<flow name="orderFlow" doc:id="61720cf3-b869-4c63-bef7-8303ca77451c" >
+		<ee:transform doc:name="Transform Message" doc:id="8eda3b7d-01c0-4902-b1b4-5c26d6d46e7f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="seats" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.seats
+	]]></ee:set-variable>
+				<ee:set-variable variableName="moviename" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.moviename]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="7ba4b400-747d-4c9e-9523-ee5ae356f84e" name="BOOKTicket"/>
+		<choice doc:name="Choice" doc:id="e6cf6ec0-62dd-46f9-b8f2-b9f8f06cecd6" >
+			<when expression="#[isEmpty((payload[0].seats_available) as Number)]">
+				<ee:transform doc:name="Transform Message" doc:id="fb05359e-882a-4583-9558-ed12d78d3e2d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"No seats (: Housefull show"
+
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression="#[vars.seats &lt;= ((payload[0].seats_available) as Number)]">
+				<set-variable value="#[vars.moviename]" doc:name="Set Variable" doc:id="3db06479-2355-48f1-8103-a157d3c7e006" variableName="moviename"/>
+				<flow-ref doc:name="Flow Reference" doc:id="c494667c-2d97-4705-b475-29236e7e3b4a" name="ticketBookingFlow"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="17ee432e-89fb-464e-b8a9-08c2e6671cf4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Not many seats"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="bb30e888-2cd4-4337-b9a2-55b053212042" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="25e03c50-e563-4d42-8803-44a656252927" >
+				<ee:transform doc:name="Transform Message" doc:id="6b02aead-7fba-4a59-89e2-9fd3a79caf82" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Sorry ! not able to find what are you looking for :("
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="e535a941-1409-42d9-946f-d0d2a2d5834f" message="#[payload]"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="ticketBookingFlow" doc:id="570b6da4-32a4-4870-a408-0e97c1ed8236" >
+		<logger level="INFO" doc:name="Logger" doc:id="45250518-acfc-4ce0-86a3-42d7b0e8995a" message="#[typeOf( payload[0].seats_available)]"/>
+		<ee:transform doc:name="Transform Message" doc:id="96d558c1-5215-4cba-b882-f6c3e2c46773" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="updatedSeats" ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload[0].seats_available - (vars.seats as Number) default null]]></ee:set-variable>
+				<ee:set-variable variableName="location" ><![CDATA[
+payload[0].location_name default null]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ceb6628c-5eb0-456f-8a87-dea151a34311" message="#[vars.updatedSeats]"/>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="8212273d-ec86-4e02-bb7f-4b6a914a725e" variableName="varPayload"/>
+		<try doc:name="Try" doc:id="c60481ed-23fa-404c-b624-59cae5c04058" >
+			<db:update doc:id="8a015957-ed2e-4c2a-b609-081612b9d8cf" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE ordermanagement
+SET seats_available = :updatedSeats
+WHERE moviename = :moviename
+
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	updatedSeats: vars.updatedSeats as String,
+	moviename:  payload[0].moviename as String
+}]]]></db:input-parameters>
+		</db:update>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9352559a-d458-4faa-ac64-14df091cfb35" >
+					<ee:transform doc:name="Transform Message" doc:id="a1731ec8-7581-451c-bc36-dc6455f608a1" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Booking now not confirmed !!"
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="daf638a5-e52f-4212-9849-df3bb443098a" message="#[payload]"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="47f81028-fe59-4c09-8966-4ce487371d0e" message="#[vars.varPayload]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="31d93cf3-b3ce-4017-9311-ea12963bc8d4" name="returnTicketFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f53cc86b-8668-4af5-95a7-115f90993f0b" message="#[payload]"/>
+	</flow>
+	<flow name="returnTicketFlow" doc:id="a51b85c2-29b3-499d-8b62-219c10655245" >
+		<logger level="INFO" doc:name="Logger" doc:id="c7ab0fc6-345d-4d36-b02f-56ecf4a37f7f" />
+		<http:request method="GET" doc:name="Request" doc:id="80a3d42a-ae03-4720-bcc2-fd7a206a8fa2" config-ref="HTTP_Request_configuration" path="/api/movies/MM">
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	location : vars.location
+}]]]></http:query-params>
+				</http:request>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="7384e24f-9f49-444a-ad66-d39e74350c52" variableName="moviePayload" />
+		<logger level="INFO" doc:name="Logger" doc:id="dd40ce4e-8251-4aef-bb97-f9b2745f5309" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="fd21a11c-c59a-42cf-9d98-daafa7ac5f49" >
+			<route >
+				<set-payload value="#[vars.moviePayload]" doc:name="Set Payload" doc:id="3045e164-189a-4ecd-a74a-a36d1cfbddaa" />
+			</route>
+			<route >
+				<set-payload value="#[{ seats :vars.seats} as Object]" doc:name="Set Payload" doc:id="d89d4267-5f13-4cf7-bd9f-1bce1ab046b2" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="4978b060-73b5-43c4-8a2c-a3065e95654d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload[0].payload reduce ((env, obj={}) -> obj ++ env)) ++ payload[1].payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="b2b6a9e8-f365-4959-aafa-781f2a74d94e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var seats = payload.seats as Number
+var discount = 0.4
+var tPrice = payload.price * seats
+---
+{
+	
+	moviename: payload.moviename,
+location: payload.locationname,
+showtime: payload.showtime,
+showdate: payload.showdate,
+numberOfSeats: seats,
+dicountedPrice: if (seats < 2) 
+				(tPrice default -1)  
+			else 
+				(tPrice - tPrice*discount default -1),
+totalPrice: tPrice 			
+
+}
+
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="326609cb-6e1c-4820-b471-55392e05371c" name="emailFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c6d8f8b2-67a5-48fd-ae43-a859e2634079" message="#[payload]"/>
+	</flow>
+	<flow name="emailFlow" doc:id="45cd78f2-6ff0-48d1-a7d3-161033bd3313" >
+		<email:send doc:id="6ea4aefe-8892-4c49-88d3-7e4a0e7fe58f" config-ref="Email_SMTP" fromAddress="yatin.more@apisero.com" subject="BookMyShow E-Ticket">
+			<email:to-addresses >
+				<email:to-address value="meghna.goel@apisero.com" />
+			</email:to-addresses>
+		</email:send>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="01518f06-96f0-4fa2-9712-5ad083688a60" >
+				<ee:transform doc:name="Transform Message" doc:id="f38bda2f-db9a-413a-b4b5-9f762a87ff51" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	"message": "Unable to send Mail :( "
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="3fe0473b-2e62-4ef5-9418-df2d8e04ab84" message="#[payload]"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

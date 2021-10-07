@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_61720cf3_b869_4c63_bef7_8303ca77451c_Output_Payload = {
+  numberOfSeats: String, 
+  totalPrice: String, 
+  showtime: String, 
+  location: String, 
+  showdate: String, 
+  moviename: String, 
+  _?: Any
+}
+

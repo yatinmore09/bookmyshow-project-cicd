@@ -1,0 +1,19 @@
+MM:
+  host: "moviesmanagement-sapi1.us-e2.cloudhub.io"
+  port: "80"
+  basepath: "/api"
+  protocol: "HTTP"
+
+OM:
+  host: "ordermanagement-sapi1.us-e2.cloudhub.io"
+  port: "80"
+  basepath: "/api"
+  protocol: "HTTP"
+
+db:
+  url: 'jdbc:postgresql://chunee.db.elephantsql.com:5432/foluoygw'
+  port: '5432'
+  user: 'foluoygw'
+  password: 'VyYFFZhyM03lOPymEle7hR6FMSdc-pwd'
+  database: 'foluoygw' 
+  classname: 'org.postgresql.Driver'
